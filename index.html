@@ -5,61 +5,59 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Habesha Bingo</title>
 <style>
-body{font-family:Arial,sans-serif;background:#101827;color:white;text-align:center;margin:0;padding:16px}
+body{background:#101827;color:white;font-family:Arial;text-align:center;padding:15px}
 h1{color:#ffd54a}
-.card{background:#1d2b40;border-radius:14px;padding:16px;margin:12px auto;max-width:600px}
-button{background:#ffd54a;color:#111;border:0;border-radius:8px;padding:12px;margin:5px;font-weight:bold}
-#grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
-.num{background:#e8edf5;color:#111;padding:12px 0;border-radius:7px;font-weight:bold}
-.num.selected{background:#31d18b}
-.num.taken{background:#777;color:white}
-#status{color:#ffd54a;font-weight:bold}
+button{padding:12px;margin:4px;border:0;border-radius:7px}
+#grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.num{background:#eee;color:#111}
+.selected{background:#31d18b}
+.card{background:#1d2b40;padding:12px;margin:10px auto;border-radius:12px}
 </style>
 </head>
 <body>
 <h1>🎱 HABESHA BINGO</h1>
-<p>የBingo ጨዋታ ማሳያ</p>
 
 <div class="card">
-<h3>የተጫዋች ስም</h3>
-<input id="player" placeholder="ስምህን አስገባ" style="padding:12px;width:75%">
-<p>እያንዳንዱ ቁጥር፦ 10 ብር</p>
-<p>ከ1 እስከ 500 ቁጥሮች ምረጥ። ከ10 በላይ አትመርጥ።</p>
-<div id="status">የመረጥካቸው ቁጥሮች፦ 0</div>
+<p>የተጫዋች ስም</p>
+<input id="player" placeholder="ስምህን አስገባ">
+<p>እያንዳንዱ ቁጥር 10 ብር</p>
+<p id="count">የመረጥካቸው ቁጥሮች፦ 0</p>
 <p id="cost">ጠቅላላ፦ 0 ብር</p>
 </div>
 
 <div class="card">
-<h3>ቁጥሮች</h3>
+<h3>ከ1 እስከ 500 ቁጥሮች ምረጥ</h3>
 <div id="grid"></div>
-<button onclick="clearNumbers()">ምርጫዬን አጽዳ</button>
+<button onclick="clearAll()">ምርጫዬን አጽዳ</button>
 <button onclick="draw()">የሙከራ ዕጣ አውጣ</button>
 </div>
 
 <div class="card">
 <h2 id="result">ዕድል መልካም! 🍀</h2>
-<p id="note">ይህ የሙከራ ስሪት ነው።</p>
+<p id="message">የBingo ሙከራ ጨዋታ</p>
+<p id="timer">ቆጣሪ፦ 4:00</p>
+<p>የተጫዋቾች መረጃ እስካሁን ከሌሎች ጋር አይጋራም።</p>
 </div>
 
 <script>
-const grid=document.getElementById('grid');
+const grid=document.getElementById("grid");
 const selected=new Set();
 
 for(let i=1;i<=500;i++){
- const b=document.createElement('button');
- b.className='num';
+ let b=document.createElement("button");
+ b.className="num";
  b.textContent=i;
  b.onclick=()=>{
   if(selected.has(i)){
    selected.delete(i);
-   b.classList.remove('selected');
+   b.classList.remove("selected");
   }else{
    if(selected.size>=10){
-    alert('ከ10 ቁጥሮች በላይ መምረጥ አትችልም።');
+    alert("ከ10 ቁጥሮች በላይ መምረጥ አትችልም");
     return;
    }
    selected.add(i);
-   b.classList.add('selected');
+   b.classList.add("selected");
   }
   update();
  };
@@ -67,30 +65,26 @@ for(let i=1;i<=500;i++){
 }
 
 function update(){
- document.getElementById('status').textContent=
- 'የመረጥካቸው ቁጥሮች፦ '+selected.size;
- document.getElementById('cost').textContent=
- 'ጠቅላላ፦ '+(selected.size*10)+' ብር';
+ document.getElementById("count").textContent=
+ "የመረጥካቸው ቁጥሮች፦ "+selected.size;
+ document.getElementById("cost").textContent=
+ "ጠቅላላ፦ "+selected.size*10+" ብር";
 }
-function clearNumbers(){
+
+function clearAll(){
  selected.clear();
- document.querySelectorAll('.num').forEach(b=>b.classList.remove('selected'));
+ document.querySelectorAll(".num").forEach(b=>b.classList.remove("selected"));
  update();
 }
+
 function draw(){
- if(!document.getElementById('player').value.trim()){
-  alert('እባክህ ስምህን አስገባ።');
-  return;
- }
- if(selected.size===0){
-  alert('መጀመሪያ ቁጥር ምረጥ።');
-  return;
- }
+ const name=document.getElementById("player").value.trim();
+ if(!name){alert("ስምህን አስገባ");return;}
+ if(selected.size===0){alert("ቁጥር ምረጥ");return;}
  const nums=[...selected];
  const winner=nums[Math.floor(Math.random()*nums.length)];
- document.getElementById('result').textContent='🎉 የወጣው ቁጥር '+winner;
- document.getElementById('note').textContent=
- document.getElementById('player').value+' ይህ የሙከራ ዕጣ ነው።';
+ document.getElementById("result").textContent="🎉 የወጣው ቁጥር "+winner;
+ document.getElementById("message").textContent=name+" ይህ የሙከራ ዕጣ ነው።";
 }
 </script>
 </body>
