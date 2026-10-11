@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Habesha Bingo</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #101827;
+  color: white;
+  text-align: center;
+  padding: 15px;
+}
+h1 { color: #ffd54a; }
+.card {
+  background: #1e293b;
+  border-radius: 15px;
+  padding: 15px;
+  margin: 12px auto;
+  max-width: 500px;
+}
+#numbers {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+button {
+  border: none;
+  border-radius: 8px;
+  padding: 12px 3px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.available { background: #22c55e; color: #06210e; }
+.selected { background: #ffd54a; color: #111; }
+.taken { background: #64748b; color: white; }
+.main { background: #ffd54a; color: #111; padding: 12px 20px; }
+#drawn { font-size: 55px; color: #ffd54a; }
+</style>
+</head>
+<body>
+
+<h1>🎱 Habesha Bingo</h1>
+<p>እንኳን ወደ Habesha Bingo በደህና መጡ!</p>
+
+<div class="card">
+  <h3>የጨዋታ መረጃ</h3>
+  <p>ቁጥሮች፦ 1–500</p>
+  <p>የአንድ ቁጥር ዋጋ፦ 10 ብር (ለሙከራ ብቻ)</p>
+  <p>የተመረጡ ቁጥሮች፦ <span id="count">0</span>/10</p>
+  <p>ጠቅላላ፦ <span id="total">0</span> ብር</p>
+</div>
+
+<div class="card">
+  <h3>ቁጥር ምረጥ</h3>
+  <div id="numbers"></div>
+  <br>
+  <button class="main" onclick="clearSelection()">ምርጫዬን አጥፋ</button>
+</div>
+
+<div class="card">
+  <h3>የሙከራ ዕጣ ውጤት</h3>
+  <div id="drawn">?</div>
+  <p id="result">ለሙከራ ብቻ ነው።</p>
+  <button class="main" onclick="demoDraw()">የሙከራ ዕጣ አውጣ</button>
+</div>
+
+<p style="color:#cbd5e1">ይህ የፊት ገጽ ሙከራ ነው። ገና ከሌሎች ተጫዋቾች ጋር አይገናኝም።</p>
+
+<script>
+const chosen = new Set();
+const grid = document.getElementById("numbers");
+
+for (let i = 1; i <= 500; i++) {
+  const btn = document.createElement("button");
+  btn.textContent = i;
+  btn.className = "available";
+  btn.onclick = () => {
+    if (chosen.has(i)) {
+      chosen.delete(i);
+      btn.className = "available";
+    } else if (chosen.size < 10) {
+      chosen.add(i);
+      btn.className = "selected";
+    } else {
+      alert("ከ10 ቁጥሮች በላይ መምረጥ አይቻልም።");
+    }
+    update();
+  };
+  grid.appendChild(btn);
+}
+
+function update() {
+  document.getElementById("count").textContent = chosen.size;
+  document.getElementById("total").textContent = chosen.size * 10;
+}
+
+function clearSelection() {
+  chosen.clear();
+  grid.querySelectorAll("button").forEach(b => b.className = "available");
+  update();
+}
+
+function demoDraw() {
+  if (chosen.size === 0) {
+    alert("መጀመሪያ ቁጥር ምረጥ።");
+    return;
+  }
+  const list = [...chosen];
+  const winner = list[Math.floor(Math.random() * list.length)];
+  document.getElementById("drawn").textContent = winner;
+  document.getElementById("result").textContent =
+    "የሙከራ ዕጣ ቁጥር: " + winner;
+}
+</script>
+
+</body>
+</html>
