@@ -1,99 +1,234 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="am">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Habesha Bingo</title>
 <style>
-body{background:#101827;color:white;font-family:Arial;text-align:center;padding:15px}
-h1{color:#ffd54a}
-button{padding:12px;margin:4px;border:0;border-radius:7px}
-#grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
-.num{background:#eee;color:#111}
-.selected{background:#31d18b}
-.card{background:#1d2b40;padding:12px;margin:10px auto;border-radius:12px}
+:root{--bg:#0b1020;--panel:#141c31;--line:#2b3858;--text:#f4f7ff;--muted:#aab5ce;--gold:#ffc857;--green:#22c55e;--red:#f87171;--blue:#60a5fa}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#0b1020,#101b34);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:1000px;margin:auto;padding:16px}.hero{text-align:center;padding:20px 8px}.hero h1{margin:0;color:var(--gold);font-size:clamp(28px,6vw,44px)}.hero p{color:var(--muted);margin:8px 0}
+.panel{background:rgba(20,28,49,.96);border:1px solid var(--line);border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 10px 30px #0002}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}.field{flex:1;min-width:180px}label{display:block;font-size:14px;color:var(--muted);margin-bottom:6px}
+input{width:100%;padding:12px;border:1px solid var(--line);border-radius:10px;background:#0b1224;color:var(--text);font-size:16px}
+button{border:0;border-radius:10px;padding:12px 16px;font-weight:700;font-size:15px;cursor:pointer;background:var(--gold);color:#182033;min-height:44px}button.secondary{background:#263553;color:var(--text)}button:disabled{opacity:.45;cursor:not-allowed}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.stat{padding:12px;background:#0c1428;border-radius:12px;text-align:center}.stat strong{display:block;font-size:23px;color:var(--gold)}.stat span{font-size:12px;color:var(--muted)}
+.legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:13px;margin:12px 0}.dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px}.free{background:#263553}.mine{background:var(--green)}.taken{background:#a3414c}
+.grid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:5px}.num{padding:8px 0;min-width:0;min-height:39px;border-radius:7px;background:#263553;color:#fff;border:1px solid #3a496b;font-size:13px}.num.mine{background:#15803d;border-color:#4ade80}.num.taken{background:#7f2938;border-color:#fb7185}.num:disabled{opacity:1;cursor:not-allowed}
+.notice{padding:11px 13px;border-radius:10px;background:#0b1429;color:var(--muted);line-height:1.5;overflow-wrap:anywhere}.notice.error{color:#fecaca;border:1px solid #7f1d1d}.notice.good{color:#bbf7d0;border:1px solid #166534}
+.small{font-size:12px;color:var(--muted);line-height:1.5}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.winner{display:none;text-align:center;border:1px solid var(--gold);background:#322714;border-radius:14px;padding:18px}.winner.show{display:block;animation:pop .5s ease}.winner .big{font-size:clamp(38px,9vw,70px);color:var(--gold);font-weight:900}@keyframes pop{from{transform:scale(.92);opacity:.3}to{transform:scale(1);opacity:1}}
+@media(max-width:520px){.wrap{padding:10px}.panel{padding:12px}.grid{grid-template-columns:repeat(8,minmax(0,1fr));gap:4px}.num{font-size:12px;min-height:36px}.stats strong{font-size:19px}}
 </style>
 </head>
 <body>
-<h1>🎱 HABESHA BINGO</h1>
-
-<div class="card">
-<p>የተጫዋች ስም</p>
-<input id="player" placeholder="ስምህን አስገባ">
-<p>እያንዳንዱ ቁጥር 10 ብር</p>
-<p id="count">የመረጥካቸው ቁጥሮች፦ 0</p>
-<p id="cost">ጠቅላላ፦ 0 ብር</p>
+<div class="wrap">
+  <header class="hero"><h1>🎱 Habesha Bingo</h1><p>የBingo ጨዋታ • ቁጥር 1–500</p></header>
+  <section class="panel">
+    <div class="row">
+      <div class="field"><label for="playerName">የተጫዋች ስም</label><input id="playerName" maxlength="40" placeholder="ስምህን አስገባ"></div>
+      <button id="joinBtn">ጨዋታውን ተቀላቀል</button>
+    </div>
+    <p class="small">ይህ የሙከራ (DEMO) ስሪት ነው። እውነተኛ ክፍያ ወይም ሽልማት አይካሄድም።</p>
+    <div id="message" class="notice" role="status" aria-live="polite">ስምህን አስገብተህ “ጨዋታውን ተቀላቀል” ተጫን።</div>
+  </section>
+  <section class="panel">
+    <div class="stats">
+      <div class="stat"><strong>10 ብር</strong><span>የአንድ ቁጥር የማስረጃ ዋጋ (DEMO)</span></div>
+      <div class="stat"><strong id="selectedCount">0 / 10</strong><span>የመረጥካቸው ቁጥሮች</span></div>
+      <div class="stat"><strong id="countdown">04:00</strong><span>የቆጣሪ ሁኔታ</span></div>
+    </div>
+    <div class="legend"><span><i class="dot free"></i>ነፃ</span><span><i class="dot mine"></i>የእኔ</span><span><i class="dot taken"></i>የተያዘ</span></div>
+    <div id="numberGrid" class="grid" aria-label="Bingo numbers"></div>
+    <div class="actions"><button id="saveBtn" disabled>የመረጥኳቸውን ቁጥሮች አስቀምጥ</button><button id="refreshBtn" class="secondary">ቁጥሮችን አድስ</button></div>
+    <p class="small">ቁጥር ለመምረጥ ተጫን። እስከ 10 ቁጥሮች ብቻ መምረጥ ትችላለህ። የተያዘ ቁጥር አይመረጥም።</p>
+  </section>
+  <section class="panel">
+    <h2>🏆 የዙሩ ሁኔታ</h2>
+    <div id="roundStatus" class="notice">ዙሩን በማግኘት ላይ…</div>
+    <div id="winnerBox" class="winner"><div>🏆 አሸናፊ</div><div id="winnerName"></div><div class="big" id="winnerNumber"></div></div>
+    <p class="small">አሸናፊ በደህንነት በserver-side ሎጂክ መመረጥ አለበት። ይህ የገጹ ስሪት ብቻውን እውነተኛ የውድድር ውጤት አያረጋግጥም።</p>
+  </section>
 </div>
-
-<div class="card">
-<h3>ከ1 እስከ 500 ቁጥሮች ምረጥ</h3>
-<div id="grid"></div>
-<button onclick="clearAll()">ምርጫዬን አጽዳ</button>
-<button onclick="draw()">የሙከራ ዕጣ አውጣ</button>
-</div>
-
-<div class="card">
-<h2 id="result">ዕድል መልካም! 🍀</h2>
-<p id="message">የBingo ሙከራ ጨዋታ</p>
-<p id="timer">ቆጣሪ፦ 4:00</p>
-<p>የተጫዋቾች መረጃ እስካሁን ከሌሎች ጋር አይጋራም።</p>
-</div>
-
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-const grid=document.getElementById("grid");
-const selected=new Set();
+'use strict';
 
-for(let i=1;i<=500;i++){
- let b=document.createElement("button");
- b.className="num";
- b.textContent=i;
- b.onclick=()=>{
-  if(selected.has(i)){
-   selected.delete(i);
-   b.classList.remove("selected");
-  }else{
-   if(selected.size>=10){
-    alert("ከ10 ቁጥሮች በላይ መምረጥ አትችልም");
-    return;
-   }
-   selected.add(i);
-   b.classList.add("selected");
+/*
+  Habesha Bingo demo frontend.
+  Uses the existing public tables:
+  bingo_players, bingo_rounds, bingo_numbers, bingo_settings.
+  Never place a Supabase service_role/secret key in this file.
+*/
+const SUPABASE_URL = 'https://bdsqdhyksifsbvmlvaee.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_JOKUlwYri2q5eZapiRohaw_s-zPrOV-';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+const $ = (id) => document.getElementById(id);
+const state = { player:null, round:null, selected:new Set(), owned:new Map(), seconds:240, timer:null, loading:false };
+const grid = $('numberGrid');
+
+function message(text, type='') {
+  $('message').textContent = text;
+  $('message').className = 'notice' + (type ? ' ' + type : '');
+}
+function escapeText(value) {
+  return String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function renderGrid() {
+  const frag = document.createDocumentFragment();
+  for (let n=1; n<=500; n++) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'num'; b.textContent = n;
+    b.dataset.number = n;
+    const owner = state.owned.get(n);
+    if (owner) {
+      const mine = state.player && owner.player_id === state.player.id;
+      b.classList.add(mine ? 'mine' : 'taken');
+      b.title = mine ? 'የእርስዎ ቁጥር' : 'በሌላ ተጫዋች ተይዟል';
+      b.disabled = !mine;
+    } else if (state.selected.has(n)) {
+      b.classList.add('mine'); b.title = 'ለመምረጥ ተዘጋጅቷል';
+    }
+    b.addEventListener('click', () => {
+      if (!state.player) { message('መጀመሪያ ስምህን አስገብተህ ጨዋታውን ተቀላቀል።','error'); return; }
+      if (state.owned.has(n)) return;
+      if (state.selected.has(n)) state.selected.delete(n);
+      else {
+        if (state.selected.size >= 10) { message('እስከ 10 ቁጥሮች ብቻ መምረጥ ትችላለህ።','error'); return; }
+        state.selected.add(n);
+      }
+      renderGrid(); updateCounts();
+    });
+    frag.appendChild(b);
   }
-  update();
- };
- grid.appendChild(b);
+  grid.replaceChildren(frag);
 }
-
-function update(){
- document.getElementById("count").textContent=
- "የመረጥካቸው ቁጥሮች፦ "+selected.size;
- document.getElementById("cost").textContent=
- "ጠቅላላ፦ "+selected.size*10+" ብር";
+function updateCounts() {
+  $('selectedCount').textContent = `${state.selected.size} / 10`;
+  $('saveBtn').disabled = !state.player || state.selected.size === 0 || state.loading;
 }
-
-function clearAll(){
- selected.clear();
- document.querySelectorAll(".num").forEach(b=>b.classList.remove("selected"));
- update();
+async function loadRound() {
+  const {data,error} = await supabaseClient.from('bingo_rounds')
+    .select('id,status,started_at,ends_at,winner_player_id,winner_number,created_at')
+    .in('status',['waiting','active']).order('created_at',{ascending:false}).limit(1);
+  if (error) throw error;
+  if (data && data.length) state.round = data[0];
+  else {
+    const created = await supabaseClient.from('bingo_rounds').insert({status:'waiting'}).select().single();
+    if (created.error) throw created.error;
+    state.round = created.data;
+  }
+  $('roundStatus').textContent = `የዙር ቁጥር: ${state.round.id} • ሁኔታ: ${state.round.status === 'waiting' ? 'ተጫዋቾችን በመጠበቅ ላይ' : state.round.status}`;
+  if (state.round.status === 'finished' && state.round.winner_number) await showWinner();
+  updateTimer();
 }
-
-function draw(){
- const name=document.getElementById("player").value.trim();
- if(!name){alert("ስምህን አስገባ");return;}
- if(selected.size===0){alert("ቁጥር ምረጥ");return;}
- const nums=[...selected];
- const winner=nums[Math.floor(Math.random()*nums.length)];
- document.getElementById("result").textContent="🎉 የወጣው ቁጥር "+winner;
- document.getElementById("message").textContent=name+" ይህ የሙከራ ዕጣ ነው።";
+async function loadNumbers() {
+  if (!state.round) return;
+  const {data,error} = await supabaseClient.from('bingo_numbers')
+    .select('number,player_id,round_id').eq('round_id',state.round.id);
+  if (error) throw error;
+  state.owned.clear();
+  (data || []).forEach(row => state.owned.set(Number(row.number),row));
+  for (const n of state.owned.keys()) state.selected.delete(n);
+  renderGrid(); updateCounts();
 }
-<script>
-const SUPABASE_URL = "https://bdsqdhyksifsbvmlvaee.supabase.co";
-const SUPABASE_KEY = "sb_publishable_JOKUlwYri2q5eZapiRohaw_s-zPrOV-";
-
-const supabaseClient = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_KEY
-);
+async function joinGame() {
+  const name = $('playerName').value.trim();
+  if (!name) { message('እባክህ ስምህን አስገባ።','error'); return; }
+  $('joinBtn').disabled = true;
+  try {
+    // Demo identity is stored only in this browser. Telegram login is not wired in this file.
+    let localId = '';
+    try { localId = sessionStorage.getItem('habesha_bingo_player_id') || ''; } catch (_) {}
+    if (localId) {
+      const found = await supabaseClient.from('bingo_players').select('id,player_name,telegram_id,avatar_url').eq('id',localId).maybeSingle();
+      if (!found.error && found.data) state.player = found.data;
+    }
+    if (!state.player) {
+      const telegramId = 'webdemo_' + (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '_' + Math.random().toString(16).slice(2));
+      const result = await supabaseClient.from('bingo_players')
+        .insert({telegram_id:telegramId,player_name:name,avatar_url:null})
+        .select('id,player_name,telegram_id,avatar_url').single();
+      if (result.error) throw result.error;
+      state.player = result.data;
+      try { sessionStorage.setItem('habesha_bingo_player_id',state.player.id); } catch (_) {}
+    }
+    $('playerName').value = state.player.player_name || name;
+    message(`እንኳን ወደ Habesha Bingo በደህና መጣህ፣ ${state.player.player_name || name}!`,'good');
+    await loadNumbers();
+    updateCounts();
+  } catch (e) {
+    message('ተጫዋቹን ማስገባት አልተቻለም። Supabase ላይ INSERT policy/RPC ካልተዘጋጀ ይህ ስህተት ይመጣል። የservice_role ቁልፍ በዚህ ፋይል አታስገባ። ዝርዝር: ' + (e.message || String(e)), 'error');
+  } finally { $('joinBtn').disabled = false; }
+}
+async function saveNumbers() {
+  if (!state.player || !state.round || !state.selected.size || state.loading) return;
+  state.loading = true; updateCounts(); $('saveBtn').textContent = 'በማስቀመጥ ላይ…';
+  const requested = [...state.selected];
+  try {
+    const current = await supabaseClient.from('bingo_numbers')
+      .select('number').eq('round_id',state.round.id).eq('player_id',state.player.id);
+    if (current.error) throw current.error;
+    if ((current.data || []).length + requested.length > 10) throw new Error('በዚህ ዙር ከ10 በላይ ቁጥሮች መያዝ አይቻልም።');
+    const payload = requested.filter(n => !state.owned.has(n)).map(number => ({
+      round_id:state.round.id, number, player_id:state.player.id
+    }));
+    if (!payload.length) throw new Error('አዲስ የሚቀመጥ ቁጥር የለም።');
+    const result = await supabaseClient.from('bingo_numbers').insert(payload);
+    if (result.error) throw result.error;
+    state.selected.clear();
+    message('ቁጥሮችህ ተቀምጠዋል። ይህ የDEMO ጨዋታ ነው።','good');
+    await loadNumbers();
+    await updateRoundState();
+  } catch (e) {
+    await loadNumbers().catch(()=>{});
+    message('ቁጥሮቹን ማስቀመጥ አልተቻለም። ምናልባት RLS/INSERT policy ወይም የተያዘ ቁጥር ሊሆን ይችላል። ዝርዝር: ' + (e.message || String(e)), 'error');
+  } finally { state.loading = false; $('saveBtn').textContent = 'የመረጥኳቸውን ቁጥሮች አስቀምጥ'; updateCounts(); }
+}
+async function updateRoundState() {
+  if (!state.round) return;
+  const {data,error} = await supabaseClient.from('bingo_numbers').select('player_id').eq('round_id',state.round.id);
+  if (error) throw error;
+  const players = new Set((data || []).map(x=>x.player_id));
+  if (players.size >= 10 && state.round.status === 'waiting') {
+    $('roundStatus').textContent = '10 ተጫዋቾች ተሞልተዋል። ቆጣሪውን በserver-side ሎጂክ ማስጀመር ያስፈልጋል።';
+  } else {
+    $('roundStatus').textContent = `ዙር ${state.round.id} • ${players.size}/10 ተጫዋቾች ቁጥር ይዘዋል • ${state.round.status === 'waiting' ? 'ተጫዋቾችን በመጠበቅ ላይ' : state.round.status}`;
+  }
+}
+function updateTimer() {
+  if (!state.round || !state.round.ends_at) { $('countdown').textContent = '04:00'; return; }
+  const end = new Date(state.round.ends_at).getTime();
+  const seconds = Math.max(0,Math.floor((end-Date.now())/1000));
+  $('countdown').textContent = `${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;
+}
+async function showWinner() {
+  if (!state.round || !state.round.winner_number) return;
+  let name = 'አሸናፊ';
+  if (state.round.winner_player_id) {
+    const {data} = await supabaseClient.from('bingo_players').select('player_name').eq('id',state.round.winner_player_id).maybeSingle();
+    if (data) name = data.player_name;
+  }
+  $('winnerName').textContent = name;
+  $('winnerNumber').textContent = state.round.winner_number;
+  $('winnerBox').classList.add('show');
+}
+async function refreshAll() {
+  $('refreshBtn').disabled = true;
+  try {
+    await loadRound(); await loadNumbers(); await updateRoundState();
+    message('የቁጥሮች ዝርዝር ታድሷል።','good');
+  } catch(e) {
+    message('Supabase ግንኙነት አልተሳካም። ዝርዝር: ' + (e.message || String(e)), 'error');
+  } finally { $('refreshBtn').disabled = false; }
+}
+$('joinBtn').addEventListener('click',joinGame);
+$('saveBtn').addEventListener('click',saveNumbers);
+$('refreshBtn').addEventListener('click',refreshAll);
+renderGrid(); updateCounts();
+refreshAll();
+setInterval(() => { updateTimer(); },1000);
+setInterval(() => { loadNumbers().catch(()=>{}); },15000);
 </script>
 </body>
 </html>
